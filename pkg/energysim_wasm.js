@@ -640,6 +640,24 @@ export class SimulationSettings {
         _assertNum(arg0);
         wasm.__wbg_set_simulationsettings_anno_fine_installazioni_nucleare(this.__wbg_ptr, arg0);
     }
+    /**
+     * @returns {number}
+     */
+    get end_year() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_end_year(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set end_year(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        _assertNum(arg0);
+        wasm.__wbg_set_simulationsettings_end_year(this.__wbg_ptr, arg0);
+    }
 }
 
 async function __wbg_load(module, imports) {
