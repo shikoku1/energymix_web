@@ -449,6 +449,29 @@
         }
     }
 
+    // Funzione per gestire la visibilità dei grafici
+    function setupGraphVisibility() {
+        const controls = document.createElement('div');
+        controls.className = 'graph-controls';
+        controls.innerHTML = '<h3>Visibilità grafici:</h3>';
+
+        document.querySelectorAll('[id*="plot-container"]').forEach(container => {
+            const parent = container.parentElement;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.onchange = () => parent.style.display = checkbox.checked ? 'block' : 'none';
+
+            const label = document.createElement('label');
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' ' + container.id.replace('-container', '')));
+
+            controls.appendChild(label);
+        });
+
+        document.getElementById('main_content').appendChild(controls);
+    }
+
     // Event listener per il pulsante di aggiornamento manuale
     function setupEventListeners() {
         const manualUpdateButton = document.getElementById('manual-send');
@@ -477,6 +500,7 @@
     // Inizializza l'applicazione
     generateSliders(sliderConfig);
     setupEventListeners();
+    setupGraphVisibility();
 </script>
 
 <div id="main_container">
