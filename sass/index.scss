@@ -20,6 +20,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
 }
 .slider-input {
   flex: 1;
@@ -36,9 +37,26 @@
   text-align: right;
   font-weight: bold;
   color: #2c5282;
-  width: 80px;
+  width: 60px;
   padding-left: 10px;
   flex-shrink: 0;
+}
+.slider-value-input {
+  width: 60px;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  text-align: right;
+  margin: 0 4px;
+  font-size: 0.9em;
+}
+.slider-unit {
+  min-width: 40px;
+  color: #666;
+  font-size: 0.9em;
+  padding-left: 2px;
+  flex-shrink: 0;
+  text-align: left;
 }
 pre {
   background-color: #2c5282;
