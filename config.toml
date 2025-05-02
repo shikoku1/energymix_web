@@ -1,5 +1,5 @@
 # The URL the site will be built for
-base_url = "http://localhost:8081/"
+base_url = "https://shikoku1.github.io/energymix_web/"
 
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
