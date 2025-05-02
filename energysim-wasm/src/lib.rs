@@ -28,6 +28,7 @@ pub struct SimulationSettings {
     pub produzione_altre_fonti_lowc: f64,
     pub anno_inizio_installazioni_nucleare: i32,
     pub anno_fine_installazioni_nucleare: i32,
+    pub end_year: i32,
 }
 
 #[wasm_bindgen]
@@ -169,7 +170,7 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
     let settings: SimulationSettings = serde_wasm_bindgen::from_value(settings).unwrap();
 
     let start_year = 2020;
-    let end_year = 2050;
+    let end_year = settings.end_year;
 
     // Calcola il consumo per ogni anno
     let mut consumo = Vec::new();
@@ -367,6 +368,15 @@ pub fn get_sliders_json() -> String {
             max: 100.0,
             step: 1.0,
             default_value: 50.0,
+        },
+        SliderConfig {
+            name_human: "📅 Anno finale simulazione".to_string(),
+            name_machine: "end_year".to_string(),
+            unit: "".to_string(),
+            min: 2030.0,
+            max: 2100.0,
+            step: 1.0,
+            default_value: 2050.0,
         },
     ];
     serde_json::to_string(&sliders).unwrap()
