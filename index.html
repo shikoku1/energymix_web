@@ -391,13 +391,62 @@
                     y: 1
                 },
                 xaxis: {
-                    range: [2005, currentValues.end_year]
+                    range: [2005, new Date().getFullYear()]
                 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)'
             };
 
             Plotly.newPlot('cf-plot-container', cf_traces, cf_layout);
+
+            // Calculate and plot new installed capacity
+            const new_capacity_traces = [
+                {
+                    name: 'Nuovo PV',
+                    x: Array.from(results.years).slice(1), // Skip first year as we need previous year for difference
+                    y: Array.from(results.pv_capacity).slice(1).map((val, i) => val - results.pv_capacity[i]),
+                    type: 'scatter',
+                    line: { color: 'orange' }
+                },
+                {
+                    name: 'Nuovo Eolico',
+                    x: Array.from(results.years).slice(1),
+                    y: Array.from(results.wind_capacity).slice(1).map((val, i) => val - results.wind_capacity[i]),
+                    type: 'scatter',
+                    line: { color: 'green' }
+                },
+                {
+                    name: 'Nuovo Nucleare',
+                    x: Array.from(results.years).slice(1),
+                    y: Array.from(results.nuclear_capacity).slice(1).map((val, i) => val - results.nuclear_capacity[i]),
+                    type: 'scatter',
+                    line: { color: 'deepskyblue' }
+                }
+            ];
+
+            const new_capacity_layout = {
+                title: 'Nuova Potenza Installata Annuale (simulata)',
+                xaxis: {
+                    title: 'Year',
+                    gridcolor: '#ddd'
+                },
+                yaxis: {
+                    title: 'Nuova Potenza Installata (MW)',
+                    gridcolor: '#ddd'
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1
+                },
+                xaxis: {
+                    range: [2005, currentValues.end_year]
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('new-capacity-plot-container', new_capacity_traces, new_capacity_layout);
         } catch (error) {
             showStatus(`Errore: ${error.message}`, 'error');
         }
@@ -479,6 +528,9 @@
             </div>
             <div class="plot-container">
                 <div id="cf-plot-container"></div>
+            </div>
+            <div class="plot-container">
+                <div id="new-capacity-plot-container"></div>
             </div>
             <div id="status-message" class="status-message"></div>
         </div>
