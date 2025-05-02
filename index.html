@@ -404,21 +404,21 @@
                 {
                     name: 'Nuovo PV',
                     x: Array.from(results.years).slice(1), // Skip first year as we need previous year for difference
-                    y: Array.from(results.pv_capacity).slice(1).map((val, i) => val - results.pv_capacity[i]),
+                    y: Array.from(results.pv_capacity).slice(1).map((val, i) => (val - results.pv_capacity[i]) / 1000),
                     type: 'scatter',
                     line: { color: 'orange' }
                 },
                 {
                     name: 'Nuovo Eolico',
                     x: Array.from(results.years).slice(1),
-                    y: Array.from(results.wind_capacity).slice(1).map((val, i) => val - results.wind_capacity[i]),
+                    y: Array.from(results.wind_capacity).slice(1).map((val, i) => (val - results.wind_capacity[i]) / 1000),
                     type: 'scatter',
                     line: { color: 'green' }
                 },
                 {
                     name: 'Nuovo Nucleare',
                     x: Array.from(results.years).slice(1),
-                    y: Array.from(results.nuclear_capacity).slice(1).map((val, i) => val - results.nuclear_capacity[i]),
+                    y: Array.from(results.nuclear_capacity).slice(1).map((val, i) => (val - results.nuclear_capacity[i]) / 1000),
                     type: 'scatter',
                     line: { color: 'deepskyblue' }
                 }
@@ -431,7 +431,7 @@
                     gridcolor: '#ddd'
                 },
                 yaxis: {
-                    title: 'Nuova Potenza Installata (MW)',
+                    title: 'Nuova Potenza Installata (GW)',
                     gridcolor: '#ddd'
                 },
                 showlegend: true,
@@ -534,6 +534,10 @@
 
             <div class="help-text">
                 L'UI non funziona da cellulare, usa un PC.
+            </div>
+
+            <div class="help-text">
+                La nuova potenza installata nucleare è discontinua perchè le durate dei cantieri vengono approssimate all'anno più vicino. Non cambia niente.
             </div>
 
             <div id="sliders-container">
