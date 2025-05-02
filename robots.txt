@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+Allow: /
+Sitemap: https://shikoku1.github.io/energymix_web/sitemap.xml
