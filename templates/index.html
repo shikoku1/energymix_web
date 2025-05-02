@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- <h1 class="title">
+  {{ section.title }}
+</h1> -->
+<!-- <ul> -->
+<!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->
+<!-- {% for page in section.pages %}
+  <li><a href="{{ page.permalink | safe }}">{{ page.title }}</a></li>
+  {% endfor %} -->
+<!-- </ul> -->
+
+<link rel="stylesheet" href="index.css">
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="module">
+    import init, { run_simulation, get_sliders_json } from './pkg/energysim_wasm.js';
+    await init();
+
+    // Schema degli slider
+    const sliderConfig = JSON.parse(get_sliders_json());
+
+    // Variabili globali
+    let currentValues = {};
+
+    // Funzione per generare gli slider
+    function generateSliders(schema) {
+        const container = document.getElementById('sliders-container');
+        container.innerHTML = '';
+
+        schema.forEach(item => {
+            const initialValue = item.default_value !== undefined ?
+                item.default_value : (item.min + item.max) / 2;
+
+            currentValues[item.name_machine] = initialValue;
+
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'slider-container';
+
+            const label = document.createElement('label');
+            label.className = 'slider-label';
+            label.textContent = item.name_human;
+            label.htmlFor = `slider-${item.name_machine}`;
+
+            const sliderRow = document.createElement('div');
+            sliderRow.className = 'slider-row';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.id = `slider-${item.name_machine}`;
+            slider.className = 'slider-input';
+            slider.min = item.min;
+            slider.max = item.max;
+            slider.step = item.step;
+            slider.value = initialValue;
+
+            const valueDisplay = document.createElement('div');
+            valueDisplay.className = 'slider-value';
+            valueDisplay.textContent = initialValue;
+
+            slider.addEventListener('input', function () {
+                const val = parseFloat(this.value);
+                valueDisplay.textContent = val;
+                currentValues[item.name_machine] = val;
+                updatePlot();
+            });
+
+            sliderRow.appendChild(slider);
+            sliderRow.appendChild(valueDisplay);
+            sliderContainer.appendChild(label);
+            sliderContainer.appendChild(sliderRow);
+            container.appendChild(sliderContainer);
+        });
+
+        updatePlot(); // Mostra il grafico al primo avvio
+    }
+
+    // Funzione per aggiornare il grafico
+    function updatePlot() {
+        try {
+            const results = run_simulation(currentValues);
+
+            const layout = {
+                title: 'Energia Prodotta/Consumata',
+                xaxis: {
+                    title: 'Year',
+                    gridcolor: '#ddd'
+                },
+                yaxis: {
+                    title: 'Annual Production/Consumption (GWh)',
+                    gridcolor: '#ddd'
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1
+                },
+                // start from 2010
+                xaxis: {
+                    range: [2005, 2050]
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            const traces = [
+
+                {
+                    name: 'PV',
+                    x: Array.from(results.years),
+                    y: Array.from(results.pv_production),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'orange',
+                    line: { color: 'orange' }
+                },
+                {
+                    name: 'Wind',
+                    x: Array.from(results.years),
+                    y: Array.from(results.wind_production),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'palegreen',
+                    line: { color: 'palegreen' }
+                },
+                {
+                    name: 'Other Low-Carbon',
+                    x: Array.from(results.years),
+                    y: Array.from(results.other_lowc_production),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'lightblue',
+                    line: { color: 'lightblue' }
+                },
+                {
+                    name: 'Nuclear',
+                    x: Array.from(results.years),
+                    y: Array.from(results.nuclear_production),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'deepskyblue',
+                    line: { color: 'deepskyblue' }
+                },
+                {
+                    name: 'Consumo',
+                    x: Array.from(results.years),
+                    y: Array.from(results.consumo),
+                    type: 'scatter',
+                    line: { color: 'red', dash: 'dash' },
+                    stackgroup: null
+                },
+                {
+                    name: 'Storico Gen pv',
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_pv_production),
+                    type: 'scatter',
+                    line: { color: 'orange', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: 'Storico Gen wind',
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_wind_production),
+                    type: 'scatter',
+                    line: { color: 'green', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: "Storico gen idroelettrico",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_hydro_production),
+                    type: 'scatter',
+                    line: { color: 'blue', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: 'Storico gen geotermico',
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_geothermal_production),
+                    type: 'scatter',
+                    line: { color: 'brown', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: 'Storico consumo',
+                    /*
+                    2005	330442,9
+                    2006	337458,9
+                    2007	339928,2
+                    2008	339480,8
+                    2009	320268,4
+                    2010	330454,5
+                    2011	334639,7
+                    2012	328219,8
+                    2013	318475,2
+                    2014	310535
+                    2015	316896,822
+                    2016	314260,866
+                    2017	320548,242
+                    2018	321431,1
+                    2019	319624,5
+                    2020	301180,3
+                    2021	319918,8
+                    2022	315008,3
+                    2023	305616,1
+                    */
+
+                    x: [2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+                    y: [
+                        330442.9, 337458.9, 339928.2, 339480.8, 320268.4, 330454.5, 334639.7, 328219.8,
+                        318475.2, 310535, 316896.822, 314260.866, 320548.242, 321431.1, 319624.5, 301180.3,
+                        319918.8, 315008.3, 305616.1, 312300.0
+                    ],
+                    type: 'scatter',
+                    line: { color: 'red', dash: 'dot' },
+
+                }
+
+            ];
+
+            const capacity_layout = {
+                title: 'Potenza installata',
+                xaxis: {
+                    title: 'Year',
+                    gridcolor: '#ddd'
+                },
+                yaxis: {
+                    title: 'Installed capacity (MW)',
+                    gridcolor: '#ddd'
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1
+                },
+                // start from 2010
+                xaxis: {
+                    range: [2005, 2050]
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            const capacity_traces = [
+                {
+                    name: 'PV',
+                    x: Array.from(results.years),
+                    y: Array.from(results.pv_capacity),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'orange',
+                    line: { color: 'orange' }
+                },
+                {
+                    name: 'Wind',
+                    x: Array.from(results.years),
+                    y: Array.from(results.wind_capacity),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'palegreen',
+                    line: { color: 'palegreen' }
+                },
+
+                {
+                    name: "PV (storico)",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_pv_capacity),
+                    type: 'scatter',
+                    line: { color: 'orange', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: "Wind (storico)",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_wind_capacity),
+                    type: 'scatter',
+                    line: { color: 'green', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: "Idroelettrico (storico)",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_hydro_capacity),
+                    type: 'scatter',
+                    line: { color: 'blue', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: "Geotermico (storico)",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_geothermal_capacity),
+                    type: 'scatter',
+                    line: { color: 'brown', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: "Bioenergie (storico)",
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_bioenergy_capacity),
+                    type: 'scatter',
+                    line: { color: 'purple', dash: 'dot' },
+                    stackgroup: 'two'
+                },
+                {
+                    name: 'Nuclear',
+                    x: Array.from(results.years),
+                    y: Array.from(results.nuclear_capacity),
+                    type: 'scatter',
+                    stackgroup: 'one',
+                    fillcolor: 'deepskyblue',
+                    line: { color: 'deepskyblue' }
+                },
+            ];
+
+            Plotly.newPlot('plot-container', traces, layout);
+            Plotly.newPlot('capacity-plot-container', capacity_traces, capacity_layout);
+        } catch (error) {
+            showStatus(`Errore: ${error.message}`, 'error');
+        }
+    }
+
+    // Funzione per mostrare messaggi di stato
+    function showStatus(message, type) {
+        const statusElement = document.getElementById('status-message');
+        statusElement.textContent = message;
+        statusElement.className = 'status-message';
+        statusElement.classList.add(`status-${type}`);
+        statusElement.style.display = 'block';
+
+        if (type === 'success') {
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    // Event listener per il pulsante di aggiornamento manuale
+    function setupEventListeners() {
+        const manualUpdateButton = document.getElementById('manual-send');
+        manualUpdateButton.addEventListener('click', () => {
+            // Reset dei valori agli slider ai valori predefiniti
+            sliderConfig.forEach(item => {
+                const defaultValue = item.default_value !== undefined ?
+                    item.default_value : (item.min + item.max) / 2;
+                currentValues[item.name_machine] = defaultValue;
+                const slider = document.getElementById(`slider-${item.name_machine}`);
+                const valueDisplay = slider.nextElementSibling;
+                slider.value = defaultValue;
+                valueDisplay.textContent = defaultValue;
+            });
+            updatePlot();
+        });
+
+        const container = document.getElementById('plot-container');
+        const resizeObserver = new ResizeObserver(entries => {
+            updatePlot();
+        });
+
+        resizeObserver.observe(container);
+    }
+
+    // Inizializza l'applicazione
+    generateSliders(sliderConfig);
+    setupEventListeners();
+</script>
+
+<div id="main_container">
+    <div id="main_content">
+        <div id="main_text">
+            <div class="container">
+                <h1>Parametri</h1>
+
+                <div id="sliders-container">
+                    <!-- Gli slider saranno generati qui dinamicamente -->
+                </div>
+
+                <div class="controls">
+                    <button id="manual-send" class="manual-trigger">Reset</button>
+                </div>
+
+                <div class="plot-container">
+                    <div id="plot-container"></div>
+                </div>
+                <div class="plot-container">
+                    <div id="capacity-plot-container"></div>
+
+                </div>
+                <div id="status-message" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

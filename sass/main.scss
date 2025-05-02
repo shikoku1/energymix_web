@@ -1,0 +1,157 @@
+// * {
+//       border-style: solid;
+//       border-color: #000;
+//       border-width: 0.5px;
+//   } 
+
+body {
+  color: #737373;
+  font-family: Poppins, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: #feffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.container {
+  width: 1140px;
+  margin: 0px auto;
+  margin-top: 0;
+  background: #feffff;
+  padding: 20px;
+  box-shadow: 0 20px 25px -5px rgba(177, 177, 177, 0.1), 0 10px 10px -5px rgba(191, 191, 191, 0.04);
+}
+
+
+.section {
+  padding: 20px;
+  background: #fff;
+}
+
+#logo img {
+  max-width: 200px;
+}
+
+.title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin: 20px 0;
+  padding: 10px;
+}
+
+.social_sponsor {
+  background-color: #cbcbcb;
+  display: flex;
+  align-items: start;
+}
+
+.license {
+  background-color: #6f9a6c;
+  font-size: 22px;
+  color: white;
+  display: none;
+}
+
+#license_text {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+
+@media (max-width: 1200px) {
+  #telegram_li {
+    margin-top: 10px;
+  }
+
+  .social_sponsor {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sponsor {
+    margin: 0;
+    margin-bottom: 20px;
+    margin-top: 20px;
+  }
+
+  .license {
+    text-align: center;
+  }
+
+  .container {
+    width: 100%;
+    padding: 0px;
+  }
+}
+
+@media (max-width: 600px) {
+  #logo img {
+    max-width: 150px;
+  }
+
+  .section {
+    padding: 0px;
+  }
+
+  .license {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 350px) {
+
+  .social-links {
+    gap: 0.5rem;
+  }
+
+  .social-link a {
+    width: 30px;
+    height: 30px;
+    font-size: 21px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  #logo img {
+    max-width: 150px;
+    position: absolute;
+    top: 50px;
+  }
+
+  .license {
+    font-size: 16px;
+  }
+
+  .sponsor {
+    margin: 0;
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 280px) {
+  #logo img {
+    max-width: 120px;
+  }
+
+  .license {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 230px) {
+  #logo img {
+    max-width: 100px;
+  }
+
+  .license {
+    font-size: 12px;
+  }
+}
