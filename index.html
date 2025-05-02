@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>title</title>
+    <title>ENERGYMIX-WEB</title>
     <link rel="stylesheet" href="main.css">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png"  href="/images/favicon/favicon_64.png" sizes="64x64">
@@ -69,20 +69,40 @@
             slider.step = item.step;
             slider.value = initialValue;
 
-            const valueDisplay = document.createElement('div');
-            valueDisplay.className = 'slider-value';
-            valueDisplay.textContent = initialValue;
+            const valueInput = document.createElement('input');
+            valueInput.type = 'number';
+            valueInput.className = 'slider-value-input';
+            valueInput.value = initialValue;
+            valueInput.min = item.min;
+            valueInput.max = item.max;
+            valueInput.step = item.step;
+
+            const unitDisplay = document.createElement('div');
+            unitDisplay.className = 'slider-unit';
+            unitDisplay.textContent = item.unit ? "[" + item.unit + "]" : "";
 
             slider.addEventListener('input', function () {
                 const val = parseFloat(this.value);
-                valueDisplay.textContent = val;
+                valueInput.value = val;
                 currentValues[item.name_machine] = val;
                 updatePlot();
             });
 
+            valueInput.addEventListener('change', function() {
+                const val = parseFloat(this.value);
+                if (val >= item.min && val <= item.max) {
+                    slider.value = val;
+                    currentValues[item.name_machine] = val;
+                    updatePlot();
+                } else {
+                    this.value = currentValues[item.name_machine];
+                }
+            });
+
             sliderContainer.appendChild(label);
             sliderContainer.appendChild(slider);
-            sliderContainer.appendChild(valueDisplay);
+            sliderContainer.appendChild(valueInput);
+            sliderContainer.appendChild(unitDisplay);
             container.appendChild(sliderContainer);
         });
 
@@ -358,9 +378,9 @@
                     item.default_value : (item.min + item.max) / 2;
                 currentValues[item.name_machine] = defaultValue;
                 const slider = document.getElementById(`slider-${item.name_machine}`);
-                const valueDisplay = slider.nextElementSibling;
+                const valueInput = slider.nextElementSibling;
                 slider.value = defaultValue;
-                valueDisplay.textContent = defaultValue;
+                valueInput.value = defaultValue;
             });
             updatePlot();
         });
