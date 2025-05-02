@@ -88,7 +88,7 @@
                 updatePlot();
             });
 
-            valueInput.addEventListener('change', function() {
+            valueInput.addEventListener('change', function () {
                 const val = parseFloat(this.value);
                 if (val >= item.min && val <= item.max) {
                     slider.value = val;
@@ -348,6 +348,56 @@
 
             Plotly.newPlot('plot-container', traces, layout);
             Plotly.newPlot('capacity-plot-container', capacity_traces, capacity_layout);
+
+            // Calculate and plot capacity factors
+            const cf_traces = [
+                {
+                    name: 'PV Capacity Factor',
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_pv_production).map((prod, i) => {
+                        const capacity = results.historical_pv_capacity[i];
+                        // Convert GWh to MWh and divide by (capacity * 8760 hours)
+                        return (prod * 1000) / (capacity * 8760) * 100;
+                    }),
+                    type: 'scatter',
+                    line: { color: 'orange' }
+                },
+                {
+                    name: 'Wind Capacity Factor',
+                    x: Array.from(results.historical_years),
+                    y: Array.from(results.historical_wind_production).map((prod, i) => {
+                        const capacity = results.historical_wind_capacity[i];
+                        // Convert GWh to MWh and divide by (capacity * 8760 hours)
+                        return (prod * 1000) / (capacity * 8760) * 100;
+                    }),
+                    type: 'scatter',
+                    line: { color: 'green' }
+                }
+            ];
+
+            const cf_layout = {
+                title: 'Capacity Factor Storico',
+                xaxis: {
+                    title: 'Year',
+                    gridcolor: '#ddd'
+                },
+                yaxis: {
+                    title: 'Capacity Factor (%)',
+                    gridcolor: '#ddd'
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1
+                },
+                xaxis: {
+                    range: [2005, 2023]
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('cf-plot-container', cf_traces, cf_layout);
         } catch (error) {
             showStatus(`Errore: ${error.message}`, 'error');
         }
@@ -404,7 +454,8 @@
             <h1>Parametri</h1>
 
             <div class="help-text">
-                Approssimazione: per inizio e fine nei parametri si intendono gli estremi di un interpolazione lineare del tal valore all'inizio e alla fine del periodo del grafico.
+                Approssimazione: per inizio e fine nei parametri si intendono gli estremi di un interpolazione lineare
+                del tal valore all'inizio e alla fine del periodo del grafico.
                 È grezzo ma per ora è cosi.
             </div>
 
@@ -421,6 +472,9 @@
             </div>
             <div class="plot-container">
                 <div id="capacity-plot-container"></div>
+            </div>
+            <div class="plot-container">
+                <div id="cf-plot-container"></div>
             </div>
             <div id="status-message" class="status-message"></div>
         </div>
