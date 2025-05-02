@@ -42,9 +42,6 @@
             label.textContent = item.name_human;
             label.htmlFor = `slider-${item.name_machine}`;
 
-            const sliderRow = document.createElement('div');
-            sliderRow.className = 'slider-row';
-
             const slider = document.createElement('input');
             slider.type = 'range';
             slider.id = `slider-${item.name_machine}`;
@@ -65,10 +62,9 @@
                 updatePlot();
             });
 
-            sliderRow.appendChild(slider);
-            sliderRow.appendChild(valueDisplay);
             sliderContainer.appendChild(label);
-            sliderContainer.appendChild(sliderRow);
+            sliderContainer.appendChild(slider);
+            sliderContainer.appendChild(valueDisplay);
             container.appendChild(sliderContainer);
         });
 
@@ -367,26 +363,23 @@
 <div id="main_container">
     <div id="main_content">
         <div id="main_text">
-            <div class="container">
-                <h1>Parametri</h1>
+            <h1>Parametri</h1>
 
-                <div id="sliders-container">
-                    <!-- Gli slider saranno generati qui dinamicamente -->
-                </div>
-
-                <div class="controls">
-                    <button id="manual-send" class="manual-trigger">Reset</button>
-                </div>
-
-                <div class="plot-container">
-                    <div id="plot-container"></div>
-                </div>
-                <div class="plot-container">
-                    <div id="capacity-plot-container"></div>
-
-                </div>
-                <div id="status-message" class="status-message"></div>
+            <div id="sliders-container">
+                <!-- Gli slider saranno generati qui dinamicamente -->
             </div>
+
+            <div class="controls">
+                <button id="manual-send" class="manual-trigger">Reset</button>
+            </div>
+
+            <div class="plot-container">
+                <div id="plot-container"></div>
+            </div>
+            <div class="plot-container">
+                <div id="capacity-plot-container"></div>
+            </div>
+            <div id="status-message" class="status-message"></div>
         </div>
     </div>
 </div>
