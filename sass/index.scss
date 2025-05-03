@@ -8,6 +8,32 @@
   box-sizing: border-box;
   border-bottom: 1px solid #ccc;
 }
+
+.slider-section {
+  border: 1px solid #ddd;
+  border-bottom: none;
+  border-top: none;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.slider-section-header {
+  background-color: #f0f0f0;
+  padding: 2px 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+.slider-section-title {
+  font-size: 0.9em;
+  font-weight: bold;
+  margin: 0;
+  color: #2c5282;
+}
+
+.slider-section-content {
+  padding: 0;
+}
+
 .slider-label {
   display: block;
   font-weight: bold;
