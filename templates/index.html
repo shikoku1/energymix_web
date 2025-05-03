@@ -403,11 +403,25 @@
                     y: Array.from(results.nuclear_capacity).slice(1).map((val, i) => (val - results.nuclear_capacity[i]) / 1000),
                     type: 'scatter',
                     line: { color: 'deepskyblue' }
+                },
+                {
+                    name: 'Storico PV',
+                    x: Array.from(results.historical_years).slice(1),
+                    y: Array.from(results.historical_pv_capacity).slice(1).map((val, i) => (val - results.historical_pv_capacity[i]) / 1000),
+                    type: 'scatter',
+                    line: { color: 'orange', dash: 'dot' }
+                },
+                {
+                    name: 'Storico Eolico',
+                    x: Array.from(results.historical_years).slice(1),
+                    y: Array.from(results.historical_wind_capacity).slice(1).map((val, i) => (val - results.historical_wind_capacity[i]) / 1000),
+                    type: 'scatter',
+                    line: { color: 'green', dash: 'dot' }
                 }
             ];
 
             const new_capacity_layout = {
-                title: 'Nuova Potenza Installata Annuale (simulata)',
+                title: 'Nuova Potenza Installata Annuale',
                 xaxis: {
                     title: 'Year',
                     gridcolor: '#ddd'
@@ -519,7 +533,8 @@
             </div>
 
             <div class="help-text">
-                La nuova potenza installata nucleare è discontinua perchè le durate dei cantieri vengono approssimate all'anno più vicino. Non cambia niente.
+                La nuova potenza installata nucleare è discontinua perchè le durate dei cantieri vengono approssimate
+                all'anno più vicino. Non cambia niente.
             </div>
 
             <div id="sliders-container">
