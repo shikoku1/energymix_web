@@ -169,7 +169,7 @@ fn vec_to_js_array<T: Clone + Into<JsValue>>(vec: &[T]) -> Array {
 pub fn run_simulation(settings: JsValue) -> SimulationResults {
     let settings: SimulationSettings = serde_wasm_bindgen::from_value(settings).unwrap();
 
-    let start_year = 2020;
+    let start_year = 2023;
     let end_year = settings.end_year;
 
     // Calcola il consumo per ogni anno
@@ -190,11 +190,14 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         scenario_stop_year: end_year,
         anno_inizio_installazioni: start_year,
         anno_fine_installazioni: end_year,
-        potenza_iniziale: 21.65004, // dato 2020
+        potenza_iniziale: *storico::get_potenza_installata()
+            .fotovoltaico
+            .last()
+            .unwrap() / 1000.0,
         nuova_potenza_annuale_foak: settings.fotovoltaico_inizio,
         nuova_potenza_annuale_noak: settings.fotovoltaico_fine,
         durata_cantieri_foak: 1,
-        capacity_factor: 0.13,
+        capacity_factor: 0.12,
         life_years: 25,
         costo_foak: 0.0,
         costo_noak: 0.0,
@@ -207,7 +210,10 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         scenario_stop_year: end_year,
         anno_inizio_installazioni: start_year,
         anno_fine_installazioni: end_year,
-        potenza_iniziale: 10.90686, // dato 2020
+        potenza_iniziale: *storico::get_potenza_installata()
+            .eolico
+            .last()
+            .unwrap() / 1000.0,
         nuova_potenza_annuale_foak: settings.eolico_inizio,
         nuova_potenza_annuale_noak: settings.eolico_fine,
         durata_cantieri_foak: 1,
@@ -268,7 +274,7 @@ pub fn get_sliders_json() -> String {
             min: 0.0,
             max: 10.0,
             step: 0.1,
-            default_value: 2.0,
+            default_value: 1.0,
         },
         SliderConfig {
             name_human: "☀️ Fotovoltaico installato all'anno, fine".to_string(),
@@ -277,7 +283,7 @@ pub fn get_sliders_json() -> String {
             min: 0.0,
             max: 10.0,
             step: 0.1,
-            default_value: 3.0,
+            default_value: 2.0,
         },
         SliderConfig {
             name_human: "💨 Eolico installato all'anno, inizio".to_string(),
