@@ -535,14 +535,16 @@
         const manualUpdateButton = document.getElementById('manual-send');
         manualUpdateButton.addEventListener('click', () => {
             // Reset dei valori agli slider ai valori predefiniti
-            sliderConfig.forEach(item => {
-                const defaultValue = item.default_value !== undefined ?
-                    item.default_value : (item.min + item.max) / 2;
-                currentValues[item.name_machine] = defaultValue;
-                const slider = document.getElementById(`slider-${item.name_machine}`);
-                const valueInput = slider.nextElementSibling;
-                slider.value = defaultValue;
-                valueInput.value = defaultValue;
+            sliderConfig.forEach(section => {
+                section.sliders.forEach(item => {
+                    const defaultValue = item.default_value !== undefined ?
+                        item.default_value : (item.min + item.max) / 2;
+                    currentValues[item.name_machine] = defaultValue;
+                    const slider = document.getElementById(`slider-${item.name_machine}`);
+                    const valueInput = slider.nextElementSibling;
+                    slider.value = defaultValue;
+                    valueInput.value = defaultValue;
+                });
             });
             updatePlot();
         });
