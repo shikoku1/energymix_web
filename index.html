@@ -42,68 +42,94 @@
     let currentValues = {};
 
     // Funzione per generare gli slider
-    function generateSliders(schema) {
+    function generateSliders(sections) {
         const container = document.getElementById('sliders-container');
         container.innerHTML = '';
 
-        schema.forEach(item => {
-            const initialValue = item.default_value !== undefined ?
-                item.default_value : (item.min + item.max) / 2;
+        sections.forEach(section => {
+            const sectionElement = document.createElement('div');
+            sectionElement.className = 'slider-section';
 
-            currentValues[item.name_machine] = initialValue;
+            const header = document.createElement('div');
+            header.className = 'slider-section-header';
 
-            const sliderContainer = document.createElement('div');
-            sliderContainer.className = 'slider-container';
+            const title = document.createElement('h2');
+            title.className = 'slider-section-title';
+            title.textContent = section.name;
 
-            const label = document.createElement('label');
-            label.className = 'slider-label';
-            label.textContent = item.name_human;
-            label.htmlFor = `slider-${item.name_machine}`;
+            const description = document.createElement('div');
+            description.className = 'slider-section-description';
+            description.textContent = section.description;
 
-            const slider = document.createElement('input');
-            slider.type = 'range';
-            slider.id = `slider-${item.name_machine}`;
-            slider.className = 'slider-input';
-            slider.min = item.min;
-            slider.max = item.max;
-            slider.step = item.step;
-            slider.value = initialValue;
+            const content = document.createElement('div');
+            content.className = 'slider-section-content';
 
-            const valueInput = document.createElement('input');
-            valueInput.type = 'number';
-            valueInput.className = 'slider-value-input';
-            valueInput.value = initialValue;
-            valueInput.min = item.min;
-            valueInput.max = item.max;
-            valueInput.step = item.step;
+            header.appendChild(title);
+            header.appendChild(description);
+            sectionElement.appendChild(header);
+            sectionElement.appendChild(content);
 
-            const unitDisplay = document.createElement('div');
-            unitDisplay.className = 'slider-unit';
-            unitDisplay.textContent = item.unit ? "[" + item.unit + "]" : "";
+            section.sliders.forEach(item => {
+                const initialValue = item.default_value !== undefined ?
+                    item.default_value : (item.min + item.max) / 2;
 
-            slider.addEventListener('input', function () {
-                const val = parseFloat(this.value);
-                valueInput.value = val;
-                currentValues[item.name_machine] = val;
-                updatePlot();
-            });
+                currentValues[item.name_machine] = initialValue;
 
-            valueInput.addEventListener('change', function () {
-                const val = parseFloat(this.value);
-                if (val >= item.min && val <= item.max) {
-                    slider.value = val;
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+
+                const label = document.createElement('label');
+                label.className = 'slider-label';
+                label.textContent = item.name_human;
+                label.htmlFor = `slider-${item.name_machine}`;
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.id = `slider-${item.name_machine}`;
+                slider.className = 'slider-input';
+                slider.min = item.min;
+                slider.max = item.max;
+                slider.step = item.step;
+                slider.value = initialValue;
+
+                const valueInput = document.createElement('input');
+                valueInput.type = 'number';
+                valueInput.className = 'slider-value-input';
+                valueInput.value = initialValue;
+                valueInput.min = item.min;
+                valueInput.max = item.max;
+                valueInput.step = item.step;
+
+                const unitDisplay = document.createElement('div');
+                unitDisplay.className = 'slider-unit';
+                unitDisplay.textContent = item.unit ? "[" + item.unit + "]" : "";
+
+                slider.addEventListener('input', function () {
+                    const val = parseFloat(this.value);
+                    valueInput.value = val;
                     currentValues[item.name_machine] = val;
                     updatePlot();
-                } else {
-                    this.value = currentValues[item.name_machine];
-                }
+                });
+
+                valueInput.addEventListener('change', function () {
+                    const val = parseFloat(this.value);
+                    if (val >= item.min && val <= item.max) {
+                        slider.value = val;
+                        currentValues[item.name_machine] = val;
+                        updatePlot();
+                    } else {
+                        this.value = currentValues[item.name_machine];
+                    }
+                });
+
+                sliderContainer.appendChild(label);
+                sliderContainer.appendChild(slider);
+                sliderContainer.appendChild(valueInput);
+                sliderContainer.appendChild(unitDisplay);
+                content.appendChild(sliderContainer);
             });
 
-            sliderContainer.appendChild(label);
-            sliderContainer.appendChild(slider);
-            sliderContainer.appendChild(valueInput);
-            sliderContainer.appendChild(unitDisplay);
-            container.appendChild(sliderContainer);
+            container.appendChild(sectionElement);
         });
 
         updatePlot(); // Mostra il grafico al primo avvio
