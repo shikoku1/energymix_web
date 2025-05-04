@@ -452,6 +452,74 @@ export class SimulationSettings {
     /**
      * @returns {number}
      */
+    get fotovoltaico_2030() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_fotovoltaico_2030(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set fotovoltaico_2030(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_fotovoltaico_2030(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get fotovoltaico_2035() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_fotovoltaico_2035(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set fotovoltaico_2035(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_fotovoltaico_2035(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get fotovoltaico_2040() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_fotovoltaico_2040(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set fotovoltaico_2040(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_fotovoltaico_2040(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get fotovoltaico_2050() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_fotovoltaico_2050(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set fotovoltaico_2050(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_fotovoltaico_2050(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
     get fotovoltaico_fine() {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
@@ -482,6 +550,74 @@ export class SimulationSettings {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
         wasm.__wbg_set_simulationsettings_eolico_inizio(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get eolico_2030() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_eolico_2030(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set eolico_2030(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_eolico_2030(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get eolico_2035() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_eolico_2035(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set eolico_2035(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_eolico_2035(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get eolico_2040() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_eolico_2040(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set eolico_2040(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_eolico_2040(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get eolico_2050() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_eolico_2050(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set eolico_2050(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_eolico_2050(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
