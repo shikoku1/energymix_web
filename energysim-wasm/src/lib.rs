@@ -526,7 +526,7 @@ pub fn get_sliders_json() -> String {
                     min: 2030.0,
                     max: 2100.0,
                     step: 1.0,
-                    default_value: 2050.0,
+                    default_value: 2055.0,
                 },
             ],
         },
