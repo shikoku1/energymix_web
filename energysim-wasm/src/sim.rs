@@ -44,10 +44,8 @@ pub struct EnergyGeneratorScenario {
     pub anno_inizio_installazioni: i32,
     /// Anno di fine della costruzione di nuovi impianti
     pub anno_fine_installazioni: i32,
-    /// Quanta potenza installata viene iniziata a costruire ogni anno, GW, il primo anno
-    pub nuova_potenza_annuale_foak: f64,
-    /// Quanta potenza installata viene iniziata a costruire ogni anno, GW, l'ultimo anno
-    pub nuova_potenza_annuale_noak: f64,
+    /// Punti di interpolazione per la potenza installata (anno, potenza in GW)
+    pub punti_lerp: Vec<(i32, f64)>,
     /// Costo di costruzione di un kW all'anno di inizio
     pub costo_foak: f64,
     /// Costo di costruzione di un kW alla fine
@@ -71,16 +69,7 @@ impl EnergyGeneratorScenario {
 
         // quanto iniziare a costruire ogni anno, occhio che non corrisponde alla potenza installata
         // perchè i cantieri durano più anni
-        let cantieri_iniziati = YearlyTimeSeries::from_lerp(vec![
-            (
-                self.anno_inizio_installazioni,
-                self.nuova_potenza_annuale_foak,
-            ),
-            (
-                self.anno_fine_installazioni,
-                self.nuova_potenza_annuale_noak,
-            ),
-        ]);
+        let cantieri_iniziati = YearlyTimeSeries::from_lerp(self.punti_lerp.clone());
 
         // quanto dura il cantiere, in anni
         let durata_cantieri = YearlyTimeSeries::from_lerp(vec![

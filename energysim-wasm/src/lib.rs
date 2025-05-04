@@ -18,8 +18,16 @@ pub fn start() {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SimulationSettings {
     pub fotovoltaico_inizio: f64,
+    pub fotovoltaico_2030: f64,
+    pub fotovoltaico_2035: f64,
+    pub fotovoltaico_2040: f64,
+    pub fotovoltaico_2050: f64,
     pub fotovoltaico_fine: f64,
     pub eolico_inizio: f64,
+    pub eolico_2030: f64,
+    pub eolico_2035: f64,
+    pub eolico_2040: f64,
+    pub eolico_2050: f64,
     pub eolico_fine: f64,
     pub nucleare_inizio: f64,
     pub nucleare_fine: f64,
@@ -189,6 +197,38 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         produzione_altre_fonti.push(settings.produzione_altre_fonti_lowc * 1000.0);
     }
 
+    // Costruisci i punti di interpolazione per fotovoltaico
+    let mut punti_lerp_fv = vec![(start_year, settings.fotovoltaico_inizio)];
+    let mut punti_lerp_eol = vec![(start_year, settings.eolico_inizio)];
+
+    // Aggiungi punti intermedi solo se rientrano nell'intervallo della simulazione
+    if start_year <= 2030 && 2030 <= end_year {
+        punti_lerp_fv.push((2030, settings.fotovoltaico_2030));
+        punti_lerp_eol.push((2030, settings.eolico_2030));
+    }
+    if start_year <= 2035 && 2035 <= end_year {
+        punti_lerp_fv.push((2035, settings.fotovoltaico_2035));
+        punti_lerp_eol.push((2035, settings.eolico_2035));
+    }
+    if start_year <= 2040 && 2040 <= end_year {
+        punti_lerp_fv.push((2040, settings.fotovoltaico_2040));
+        punti_lerp_eol.push((2040, settings.eolico_2040));
+    }
+    if start_year <= 2050 && 2050 <= end_year {
+        punti_lerp_fv.push((2050, settings.fotovoltaico_2050));
+        punti_lerp_eol.push((2050, settings.eolico_2050));
+    }
+
+    // Aggiungi l'anno finale solo se diverso dagli altri punti
+    if !punti_lerp_fv.iter().any(|(anno, _)| *anno == end_year) {
+        punti_lerp_fv.push((end_year, settings.fotovoltaico_fine));
+    }
+
+    // Aggiungi l'anno finale solo se diverso dagli altri punti
+    if !punti_lerp_eol.iter().any(|(anno, _)| *anno == end_year) {
+        punti_lerp_eol.push((end_year, settings.eolico_fine));
+    }
+
     let fottovoltaico = EnergyGeneratorScenario {
         scenario_start_year: start_year,
         scenario_stop_year: end_year,
@@ -199,8 +239,7 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
             .last()
             .unwrap()
             / 1000.0,
-        nuova_potenza_annuale_foak: settings.fotovoltaico_inizio,
-        nuova_potenza_annuale_noak: settings.fotovoltaico_fine,
+        punti_lerp: punti_lerp_fv,
         durata_cantieri_foak: 1,
         capacity_factor: 0.12,
         life_years: 25,
@@ -216,8 +255,7 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         anno_inizio_installazioni: start_year,
         anno_fine_installazioni: end_year,
         potenza_iniziale: *storico::get_potenza_installata().eolico.last().unwrap() / 1000.0,
-        nuova_potenza_annuale_foak: settings.eolico_inizio,
-        nuova_potenza_annuale_noak: settings.eolico_fine,
+        punti_lerp: punti_lerp_eol,
         durata_cantieri_foak: 1,
         capacity_factor: 0.2,
         life_years: 20,
@@ -233,8 +271,16 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         anno_inizio_installazioni: settings.anno_inizio_installazioni_nucleare,
         anno_fine_installazioni: settings.anno_fine_installazioni_nucleare,
         potenza_iniziale: 0.0,
-        nuova_potenza_annuale_foak: settings.nucleare_inizio,
-        nuova_potenza_annuale_noak: settings.nucleare_fine,
+        punti_lerp: vec![
+            (
+                settings.anno_inizio_installazioni_nucleare,
+                settings.nucleare_inizio,
+            ),
+            (
+                settings.anno_fine_installazioni_nucleare,
+                settings.nucleare_fine,
+            ),
+        ],
         durata_cantieri_foak: settings.durata_cantiere_foak,
         durata_cantieri_noak: settings.durata_cantiere_noak,
         capacity_factor: 0.85,
@@ -288,6 +334,42 @@ pub fn get_sliders_json() -> String {
                     default_value: 1.0,
                 },
                 SliderConfig {
+                    name_human: "Potenza installata 2030".to_string(),
+                    name_machine: "fotovoltaico_2030".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 1.3,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2035".to_string(),
+                    name_machine: "fotovoltaico_2035".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 1.5,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2040".to_string(),
+                    name_machine: "fotovoltaico_2040".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 1.7,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2050".to_string(),
+                    name_machine: "fotovoltaico_2050".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 1.9,
+                },
+                SliderConfig {
                     name_human: "Potenza installata l'ultimo anno".to_string(),
                     name_machine: "fotovoltaico_fine".to_string(),
                     unit: "GW".to_string(),
@@ -309,6 +391,42 @@ pub fn get_sliders_json() -> String {
                     max: 10.0,
                     step: 0.1,
                     default_value: 0.5,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2030".to_string(),
+                    name_machine: "eolico_2030".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 0.6,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2035".to_string(),
+                    name_machine: "eolico_2035".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 0.7,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2040".to_string(),
+                    name_machine: "eolico_2040".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 0.8,
+                },
+                SliderConfig {
+                    name_human: "Potenza installata 2050".to_string(),
+                    name_machine: "eolico_2050".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.0,
+                    max: 10.0,
+                    step: 0.1,
+                    default_value: 0.9,
                 },
                 SliderConfig {
                     name_human: "Potenza installata l'ultimo anno".to_string(),
