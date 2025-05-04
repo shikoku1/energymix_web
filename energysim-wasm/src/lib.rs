@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 
 mod sim;
 mod storico;
+mod yearly_time_series;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -51,15 +52,16 @@ impl SimulationResults {
 
     #[wasm_bindgen(getter)]
     pub fn pv_production(&self) -> Array {
-        vec_to_js_array(&self.scenario_fv.energia_prodotta)
+        vec_to_js_array(&self.scenario_fv.energia_prodotta.values)
     }
 
     #[wasm_bindgen(getter)]
     pub fn pv_capacity(&self) -> Array {
         vec_to_js_array(
-            &self
+            &&self
                 .scenario_fv
                 .potenza_installata
+                .values
                 .iter()
                 .map(|x| x * 1000.0)
                 .collect::<Vec<f64>>(),
@@ -68,15 +70,16 @@ impl SimulationResults {
 
     #[wasm_bindgen(getter)]
     pub fn wind_production(&self) -> Array {
-        vec_to_js_array(&self.scenario_eol.energia_prodotta)
+        vec_to_js_array(&self.scenario_eol.energia_prodotta.values)
     }
 
     #[wasm_bindgen(getter)]
     pub fn wind_capacity(&self) -> Array {
         vec_to_js_array(
-            &self
+            &&self
                 .scenario_eol
                 .potenza_installata
+                .values
                 .iter()
                 .map(|x| x * 1000.0)
                 .collect::<Vec<f64>>(),
@@ -85,15 +88,16 @@ impl SimulationResults {
 
     #[wasm_bindgen(getter)]
     pub fn nuclear_production(&self) -> Array {
-        vec_to_js_array(&self.scenario_nucl.energia_prodotta)
+        vec_to_js_array(&self.scenario_nucl.energia_prodotta.values)
     }
 
     #[wasm_bindgen(getter)]
     pub fn nuclear_capacity(&self) -> Array {
         vec_to_js_array(
-            &self
+            &&self
                 .scenario_nucl
                 .potenza_installata
+                .values
                 .iter()
                 .map(|x| x * 1000.0)
                 .collect::<Vec<f64>>(),
@@ -193,7 +197,8 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         potenza_iniziale: *storico::get_potenza_installata()
             .fotovoltaico
             .last()
-            .unwrap() / 1000.0,
+            .unwrap()
+            / 1000.0,
         nuova_potenza_annuale_foak: settings.fotovoltaico_inizio,
         nuova_potenza_annuale_noak: settings.fotovoltaico_fine,
         durata_cantieri_foak: 1,
@@ -210,10 +215,7 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         scenario_stop_year: end_year,
         anno_inizio_installazioni: start_year,
         anno_fine_installazioni: end_year,
-        potenza_iniziale: *storico::get_potenza_installata()
-            .eolico
-            .last()
-            .unwrap() / 1000.0,
+        potenza_iniziale: *storico::get_potenza_installata().eolico.last().unwrap() / 1000.0,
         nuova_potenza_annuale_foak: settings.eolico_inizio,
         nuova_potenza_annuale_noak: settings.eolico_fine,
         durata_cantieri_foak: 1,

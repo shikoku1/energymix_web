@@ -1,17 +1,15 @@
-fn lerp(anno_start: f64, valore_start: f64, anno_stop: f64, valore_stop: f64, anno: f64) -> f64 {
-    let m = (valore_stop - valore_start) / (anno_stop - anno_start);
-    let q = valore_start - m * anno_start;
-    m * anno + q
-}
+use core::time;
+
+use crate::yearly_time_series::YearlyTimeSeries;
 
 pub struct SingleSourceSimResult {
     pub anni: Vec<i32>,
     /// Potenza installata in GW, in totale anno per anno
-    pub potenza_installata: Vec<f64>,
+    pub potenza_installata: YearlyTimeSeries,
     /// nova potenza installata in GW, sul singolo anno
-    pub nuova_potenza_installata_y: Vec<f64>,
+    pub nuova_potenza_installata_y: YearlyTimeSeries,
     /// Energia prodotta in GWh
-    pub energia_prodotta: Vec<f64>,
+    pub energia_prodotta: YearlyTimeSeries,
     /// Emissioni totali in tonnellate di CO2
     pub emissioni_totali: f64,
     /// Costo totale in euro
@@ -24,9 +22,9 @@ impl SingleSourceSimResult {
 
         SingleSourceSimResult {
             anni: (start_year..stop_year).collect(),
-            potenza_installata: vec![0.0; size],
-            nuova_potenza_installata_y: vec![0.0; size],
-            energia_prodotta: vec![0.0; size],
+            potenza_installata: YearlyTimeSeries::new(start_year, stop_year),
+            nuova_potenza_installata_y: YearlyTimeSeries::new(start_year, stop_year),
+            energia_prodotta: YearlyTimeSeries::new(start_year, stop_year),
             emissioni_totali: 0.0,
             costo_totale: 0.0,
         }
@@ -71,95 +69,64 @@ impl EnergyGeneratorScenario {
         let mut time_series =
             SingleSourceSimResult::new(self.scenario_start_year, self.scenario_stop_year);
 
-        for year in &time_series.anni {
-            // se siamo in un anno di costruzione
-            if *year >= (self.anno_inizio_installazioni) && *year < self.anno_fine_installazioni {
-                // calcoliamo la nuova potenza e la durata del cantiere in base a lerp nell'anno corrente
-                // (grossa semplificazione)
+        // quanto iniziare a costruire ogni anno, occhio che non corrisponde alla potenza installata
+        // perchè i cantieri durano più anni
+        let cantieri_iniziati = YearlyTimeSeries::from_lerp(vec![
+            (
+                self.anno_inizio_installazioni,
+                self.nuova_potenza_annuale_foak,
+            ),
+            (
+                self.anno_fine_installazioni,
+                self.nuova_potenza_annuale_noak,
+            ),
+        ]);
 
-                let power_to_build = lerp(
-                    self.anno_inizio_installazioni as f64,
-                    self.nuova_potenza_annuale_foak,
-                    self.anno_fine_installazioni as f64,
-                    self.nuova_potenza_annuale_noak,
-                    *year as f64,
-                );
+        // quanto dura il cantiere, in anni
+        let durata_cantieri = YearlyTimeSeries::from_lerp(vec![
+            (
+                self.anno_inizio_installazioni,
+                self.durata_cantieri_foak as f64,
+            ),
+            (
+                self.anno_fine_installazioni,
+                self.durata_cantieri_noak as f64,
+            ),
+        ]);
 
-                let durata_cantiere = lerp(
-                    self.anno_inizio_installazioni as f64,
-                    self.durata_cantieri_foak as f64,
-                    self.anno_fine_installazioni as f64,
-                    self.durata_cantieri_noak as f64,
-                    *year as f64,
-                );
+        for anno in self.anno_inizio_installazioni..=self.anno_fine_installazioni {
+            let cantiere = cantieri_iniziati.get(anno);
+            let durata = durata_cantieri.get(anno);
 
-                // ha senso sta cosa??
-                let costo = lerp(
-                    self.anno_inizio_installazioni as f64,
-                    self.costo_foak,
-                    self.anno_fine_installazioni as f64,
-                    self.costo_noak,
-                    *year as f64,
-                );
-
-                time_series.costo_totale += costo * power_to_build * 1_000_000.0;
-                // ???
-
-                let anno_online = year + durata_cantiere as i32;
-
-                let index = (anno_online - self.scenario_start_year) as usize;
-
-                if index < time_series.potenza_installata.len() {
-                    // Aggiungi la potenza all'anno corrente
-                    time_series.nuova_potenza_installata_y[index] += power_to_build;
-                }
-            }
+            time_series
+                .nuova_potenza_installata_y
+                .insert_add(anno + durata as i32, cantiere);
         }
 
-        // info!("{:?}", time_series.nuova_potenza_installata_y);
-
         // cumsum di potenza installata annuale per ottenere la potenza installata totale, che rimane negli anni successivi
-        time_series.potenza_installata = time_series
-            .nuova_potenza_installata_y
-            .iter()
-            .scan(self.potenza_iniziale, |state, &x| {
-                *state += x;
-                Some(*state)
-            })
-            .collect();
-
-        time_series.energia_prodotta = time_series
+        time_series.potenza_installata = time_series.nuova_potenza_installata_y.clone();
+        time_series.potenza_installata.cumsum();
+        time_series
             .potenza_installata
-            .iter()
-            .map(|&x| x * self.capacity_factor * 24.0 * 365.0)
-            .collect();
+            .add_constant(self.potenza_iniziale);
+
+        time_series.energia_prodotta = time_series.potenza_installata.clone();
+
+        time_series
+            .energia_prodotta
+            .values
+            .iter_mut()
+            .for_each(|x| {
+                *x = *x * self.capacity_factor * 24.0 * 365.0;
+            });
 
         time_series.emissioni_totali = time_series
             .energia_prodotta
+            .values
             .iter()
             .map(|&x| x * self.emissioni_co2)
             .sum();
 
         time_series
-    }
-}
-
-#[cfg(test)]
-mod test {
-
-    #[test]
-    fn test_lerp() {
-        let result = super::lerp(2000.0, 0.0, 2020.0, 1.0, 2010.0);
-        assert_eq!(result, 0.5);
-
-        let result = super::lerp(2000.0, 0.0, 2020.0, 1.0, 2020.0);
-        assert_eq!(result, 1.0);
-
-        let result = super::lerp(2000.0, 0.0, 2020.0, 1.0, 2000.0);
-        assert_eq!(result, 0.0);
-
-        let result = super::lerp(2000.0, 0.0, 2020.0, 100.0, 2010.0);
-
-        assert_eq!(result, 50.0);
     }
 }
