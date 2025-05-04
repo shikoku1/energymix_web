@@ -569,8 +569,7 @@
             <h1>Parametri</h1>
 
             <div class="help-text">
-                Approssimazione: per inizio e fine nei parametri si intendono gli estremi di un interpolazione lineare
-                del tal valore all'inizio e alla fine del periodo del grafico.
+                Approssimazione: nei dati di input, il simulatore capisce solo di interpolazioni lineari.
                 È grezzo ma per ora è cosi.
             </div>
 
@@ -581,6 +580,11 @@
             <div class="help-text">
                 La nuova potenza installata nucleare è discontinua perchè le durate dei cantieri vengono approssimate
                 all'anno più vicino. Non cambia niente.
+            </div>
+
+            <div class="help-text">
+                La durata degli impianti rinnovabili non viene presa in considerazione. Si presume che la potenza installata efficace sia 
+                monotona crescente, a prescindere da decommissioning e derating, aggiustare i dati di input di conseguenza.
             </div>
 
             <div id="sliders-container">
