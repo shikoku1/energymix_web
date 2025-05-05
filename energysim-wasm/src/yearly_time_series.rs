@@ -4,7 +4,7 @@ fn lerp(anno_start: f64, valore_start: f64, anno_stop: f64, valore_stop: f64, an
     m * anno + q
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct YearlyTimeSeries {
     pub start_year: i32,
     pub stop_year: i32,

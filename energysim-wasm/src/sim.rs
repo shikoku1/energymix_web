@@ -2,6 +2,91 @@ use core::time;
 
 use crate::yearly_time_series::YearlyTimeSeries;
 
+pub struct RenewableGenerationInstallations {
+    pub potenza_iniziale: f64,
+    pub punti_lerp: Vec<(i32, f64)>,
+    pub scenario_start_year: i32,
+    pub scenario_stop_year: i32,
+}
+
+impl RenewableGenerationInstallations {
+    pub fn get_nuova_potenza_installata(&self, anno: i32) -> YearlyTimeSeries {
+        let cantieri_iniziati = YearlyTimeSeries::from_lerp(self.punti_lerp.clone());
+
+        let mut nuova_potenza_installata_y =
+            YearlyTimeSeries::new(self.scenario_start_year, self.scenario_stop_year);
+
+        for anno in self.scenario_start_year..=self.scenario_stop_year {
+            let cantiere = cantieri_iniziati.get(anno);
+            nuova_potenza_installata_y.insert_add(anno, cantiere);
+        }
+
+        nuova_potenza_installata_y
+    }
+}
+
+pub struct NuclearGenerationInstallations {
+    // Parametri delle barre
+    pub reattori_prima_learning: i32, // Numero reattori iniziali
+    pub reattori_dopo_learning: i32,  // Numero reattori dopo learning
+    pub potenza_reattore: f64,        // Potenza del reattore
+    pub numero_reattori: i32,         // Numero totale reattori
+    pub anno_inizio_installazioni_nucleare: i32, // Anno inizio costruzione
+    pub durata_cantiere_foak: i32,    // Durata primo cantiere
+    pub tempo_learning: i32,          // Tempo di learning
+}
+
+impl NuclearGenerationInstallations {
+    pub fn get_nuova_potenza_installata(&self) -> YearlyTimeSeries {
+        // Calcola l'anno di prima operazione nucleare
+        let anno_prima_operazione =
+            self.anno_inizio_installazioni_nucleare + self.durata_cantiere_foak;
+
+        let anno_inizio_learning = anno_prima_operazione + self.tempo_learning;
+
+        // questo è un higher bound per il numero di anni in cui la cosa può durare
+        let mut nuova_potenza_installata_y = YearlyTimeSeries::new(
+            self.anno_inizio_installazioni_nucleare,
+            self.anno_inizio_installazioni_nucleare * self.numero_reattori,
+        );
+
+        // Costruisci i reattori in sequenza
+        let mut reattori_costruiti = 0;
+
+        for anno in self.anno_inizio_installazioni_nucleare..=nuova_potenza_installata_y.stop_year {
+            if anno < anno_prima_operazione {
+                nuova_potenza_installata_y.insert_add(anno, 0.0);
+            } else {
+                if anno < anno_inizio_learning {
+                    for _ in 0..self.reattori_prima_learning {
+                        nuova_potenza_installata_y.insert_add(anno, self.potenza_reattore);
+                        reattori_costruiti += 1;
+
+                        if reattori_costruiti >= self.numero_reattori {
+                            break;
+                        }
+                    }
+                } else {
+                    for _ in 0..self.reattori_dopo_learning {
+                        nuova_potenza_installata_y.insert_add(anno, self.potenza_reattore);
+                        reattori_costruiti += 1;
+
+                        if reattori_costruiti >= self.numero_reattori {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if reattori_costruiti >= self.numero_reattori {
+                break;
+            }
+        }
+
+        nuova_potenza_installata_y
+    }
+}
+
 pub struct SingleSourceSimResult {
     pub anni: Vec<i32>,
     /// Potenza installata in GW, in totale anno per anno
@@ -34,18 +119,13 @@ impl SingleSourceSimResult {
 /// Scenario per la generazione di energia
 #[derive(Default)]
 pub struct EnergyGeneratorScenario {
+    pub nuova_potenza_installata_y: YearlyTimeSeries,
     /// Anno di inizio del range considerato
     pub scenario_start_year: i32,
     /// Anno di fine del range considerato
     pub scenario_stop_year: i32,
     /// Potenza che è già installata precedentemente all'anno di inizio
     pub potenza_iniziale: f64,
-    /// Anno di inizio della costruzione di nuovi impianti
-    pub anno_inizio_installazioni: i32,
-    /// Anno di fine della costruzione di nuovi impianti
-    pub anno_fine_installazioni: i32,
-    /// Punti di interpolazione per la potenza installata (anno, potenza in GW)
-    pub punti_lerp: Vec<(i32, f64)>,
     /// Costo di costruzione di un kW all'anno di inizio
     pub costo_foak: f64,
     /// Costo di costruzione di un kW alla fine
@@ -67,30 +147,11 @@ impl EnergyGeneratorScenario {
         let mut time_series =
             SingleSourceSimResult::new(self.scenario_start_year, self.scenario_stop_year);
 
-        // quanto iniziare a costruire ogni anno, occhio che non corrisponde alla potenza installata
-        // perchè i cantieri durano più anni
-        let cantieri_iniziati = YearlyTimeSeries::from_lerp(self.punti_lerp.clone());
+        time_series.nuova_potenza_installata_y = self.nuova_potenza_installata_y.clone();
 
-        // quanto dura il cantiere, in anni
-        let durata_cantieri = YearlyTimeSeries::from_lerp(vec![
-            (
-                self.anno_inizio_installazioni,
-                self.durata_cantieri_foak as f64,
-            ),
-            (
-                self.anno_fine_installazioni,
-                self.durata_cantieri_noak as f64,
-            ),
-        ]);
-
-        for anno in self.anno_inizio_installazioni..=self.anno_fine_installazioni {
-            let cantiere = cantieri_iniziati.get(anno);
-            let durata = durata_cantieri.get(anno);
-
-            time_series
-                .nuova_potenza_installata_y
-                .insert_add(anno + durata as i32, cantiere);
-        }
+        time_series
+            .nuova_potenza_installata_y
+            .crop_extend(self.scenario_start_year, self.scenario_stop_year);
 
         // cumsum di potenza installata annuale per ottenere la potenza installata totale, che rimane negli anni successivi
         time_series.potenza_installata = time_series.nuova_potenza_installata_y.clone();

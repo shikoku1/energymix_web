@@ -1,7 +1,10 @@
 use js_sys::Array;
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
-use sim::{EnergyGeneratorScenario, SingleSourceSimResult};
+use sim::{
+    EnergyGeneratorScenario, NuclearGenerationInstallations, RenewableGenerationInstallations,
+    SingleSourceSimResult,
+};
 use storico::DatoStorico;
 use wasm_bindgen::prelude::*;
 
@@ -29,14 +32,15 @@ pub struct SimulationSettings {
     pub eolico_2040: f64,
     pub eolico_2050: f64,
     pub eolico_fine: f64,
-    pub nucleare_inizio: f64,
-    pub nucleare_fine: f64,
+    pub reattori_prima_learning: i32,
+    pub reattori_dopo_learning: i32,
+    pub potenza_reattore: f64,
+    pub numero_reattori: i32,
     pub durata_cantiere_foak: i32,
-    pub durata_cantiere_noak: i32,
+    pub tempo_learning: i32,
     pub tasso_crescita_consumo: f64,
     pub produzione_altre_fonti_lowc: f64,
     pub anno_inizio_installazioni_nucleare: i32,
-    pub anno_fine_installazioni_nucleare: i32,
     pub end_year: i32,
 }
 
@@ -229,17 +233,30 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         punti_lerp_eol.push((end_year, settings.eolico_fine));
     }
 
-    let fottovoltaico = EnergyGeneratorScenario {
-        scenario_start_year: start_year,
-        scenario_stop_year: end_year,
-        anno_inizio_installazioni: start_year,
-        anno_fine_installazioni: end_year,
+    /*
+           Fotovoltaico
+    */
+
+    let newpot_ftv = RenewableGenerationInstallations {
         potenza_iniziale: *storico::get_potenza_installata()
             .fotovoltaico
             .last()
             .unwrap()
             / 1000.0,
         punti_lerp: punti_lerp_fv,
+        scenario_start_year: start_year,
+        scenario_stop_year: end_year,
+    };
+
+    let fottovoltaico = EnergyGeneratorScenario {
+        nuova_potenza_installata_y: newpot_ftv.get_nuova_potenza_installata(start_year),
+        scenario_start_year: start_year,
+        scenario_stop_year: end_year,
+        potenza_iniziale: *storico::get_potenza_installata()
+            .fotovoltaico
+            .last()
+            .unwrap()
+            / 1000.0,
         durata_cantieri_foak: 1,
         capacity_factor: 0.12,
         life_years: 25,
@@ -249,13 +266,22 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         durata_cantieri_noak: 1,
     };
 
-    let eolico = EnergyGeneratorScenario {
-        scenario_start_year: start_year,
-        scenario_stop_year: end_year,
-        anno_inizio_installazioni: start_year,
-        anno_fine_installazioni: end_year,
+    /*
+       Eolico
+    */
+
+    let newpot_eol = RenewableGenerationInstallations {
         potenza_iniziale: *storico::get_potenza_installata().eolico.last().unwrap() / 1000.0,
         punti_lerp: punti_lerp_eol,
+        scenario_start_year: start_year,
+        scenario_stop_year: end_year,
+    };
+
+    let eolico = EnergyGeneratorScenario {
+        nuova_potenza_installata_y: newpot_eol.get_nuova_potenza_installata(start_year),
+        scenario_start_year: start_year,
+        scenario_stop_year: end_year,
+        potenza_iniziale: *storico::get_potenza_installata().eolico.last().unwrap() / 1000.0,
         durata_cantieri_foak: 1,
         capacity_factor: 0.2,
         life_years: 20,
@@ -265,24 +291,28 @@ pub fn run_simulation(settings: JsValue) -> SimulationResults {
         durata_cantieri_noak: 1,
     };
 
+    /*
+       Nucleare
+    */
+
+    let newpot_nucl = NuclearGenerationInstallations {
+        reattori_prima_learning: settings.reattori_prima_learning,
+        reattori_dopo_learning: settings.reattori_dopo_learning,
+        potenza_reattore: settings.potenza_reattore,
+        numero_reattori: settings.numero_reattori,
+        anno_inizio_installazioni_nucleare: settings.anno_inizio_installazioni_nucleare,
+        durata_cantiere_foak: settings.durata_cantiere_foak,
+        tempo_learning: settings.tempo_learning,
+    };
+
     let nucleare = EnergyGeneratorScenario {
+        nuova_potenza_installata_y: newpot_nucl.get_nuova_potenza_installata(),
         scenario_start_year: start_year,
         scenario_stop_year: end_year,
-        anno_inizio_installazioni: settings.anno_inizio_installazioni_nucleare,
-        anno_fine_installazioni: settings.anno_fine_installazioni_nucleare,
         potenza_iniziale: 0.0,
-        punti_lerp: vec![
-            (
-                settings.anno_inizio_installazioni_nucleare,
-                settings.nucleare_inizio,
-            ),
-            (
-                settings.anno_fine_installazioni_nucleare,
-                settings.nucleare_fine,
-            ),
-        ],
+
         durata_cantieri_foak: settings.durata_cantiere_foak,
-        durata_cantieri_noak: settings.durata_cantiere_noak,
+        durata_cantieri_noak: 1,
         capacity_factor: 0.85,
         life_years: 60,
         costo_foak: 0.0,
@@ -443,43 +473,52 @@ pub fn get_sliders_json() -> String {
             name: "☢️ Nucleare".to_string(),
             sliders: vec![
                 SliderConfig {
-                    name_human: "Potenza installata il primo anno".to_string(),
-                    name_machine: "nucleare_inizio".to_string(),
-                    unit: "GW".to_string(),
+                    name_human: "Reattori all'anno all'inizio".to_string(),
+                    name_machine: "reattori_prima_learning".to_string(),
+                    unit: "".to_string(),
                     min: 0.0,
                     max: 10.0,
-                    step: 0.1,
-                    default_value: 2.0,
+                    step: 1.0,
+                    default_value: 1.0,
                 },
                 SliderConfig {
-                    name_human: "Potenza installata l'ultimo anno".to_string(),
-                    name_machine: "nucleare_fine".to_string(),
-                    unit: "GW".to_string(),
+                    name_human: "Anni necessari per ramp-up a regime".to_string(),
+                    name_machine: "tempo_learning".to_string(),
+                    unit: "anni".to_string(),
                     min: 0.0,
                     max: 10.0,
-                    step: 0.1,
+                    step: 1.0,
                     default_value: 3.0,
                 },
                 SliderConfig {
-                    name_human: "Durata Cantiere (foak)".to_string(),
-                    name_machine: "durata_cantiere_foak".to_string(),
-                    unit: "anni".to_string(),
+                    name_human: "Reattori all'anno dopo ramp-up".to_string(),
+                    name_machine: "reattori_dopo_learning".to_string(),
+                    unit: "".to_string(),
                     min: 0.0,
-                    max: 20.0,
+                    max: 10.0,
                     step: 1.0,
-                    default_value: 8.0,
+                    default_value: 2.0,
                 },
                 SliderConfig {
-                    name_human: "Durata Cantiere (noak)".to_string(),
-                    name_machine: "durata_cantiere_noak".to_string(),
-                    unit: "anni".to_string(),
-                    min: 0.0,
-                    max: 20.0,
-                    step: 1.0,
-                    default_value: 5.0,
+                    name_human: "Potenza del reattore".to_string(),
+                    name_machine: "potenza_reattore".to_string(),
+                    unit: "GW".to_string(),
+                    min: 0.1,
+                    max: 2.0,
+                    step: 0.1,
+                    default_value: 1.6,
                 },
                 SliderConfig {
-                    name_human: "Anno inizio primo cantiere".to_string(),
+                    name_human: "Numero totale reattori".to_string(),
+                    name_machine: "numero_reattori".to_string(),
+                    unit: "".to_string(),
+                    min: 1.0,
+                    max: 30.0,
+                    step: 1.0,
+                    default_value: 20.0,
+                },
+                SliderConfig {
+                    name_human: "Anno inizio costruzione".to_string(),
                     name_machine: "anno_inizio_installazioni_nucleare".to_string(),
                     unit: "".to_string(),
                     min: 2025.0,
@@ -488,13 +527,13 @@ pub fn get_sliders_json() -> String {
                     default_value: 2029.0,
                 },
                 SliderConfig {
-                    name_human: "Anno ultimo cantiere".to_string(),
-                    name_machine: "anno_fine_installazioni_nucleare".to_string(),
-                    unit: "".to_string(),
-                    min: 2030.0,
-                    max: 2050.0,
+                    name_human: "Durata primo cantiere".to_string(),
+                    name_machine: "durata_cantiere_foak".to_string(),
+                    unit: "anni".to_string(),
+                    min: 0.0,
+                    max: 20.0,
                     step: 1.0,
-                    default_value: 2045.0,
+                    default_value: 8.0,
                 },
             ],
         },
@@ -508,7 +547,7 @@ pub fn get_sliders_json() -> String {
                     min: 0.0,
                     max: 5.0,
                     step: 0.1,
-                    default_value: 2.0,
+                    default_value: 1.5,
                 },
                 SliderConfig {
                     name_human: "💦♻️🌋 Produzione altre fonti low-carbon".to_string(),
