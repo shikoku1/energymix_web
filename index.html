@@ -445,8 +445,8 @@
                     name: 'Nuovo Nucleare',
                     x: Array.from(results.years).slice(1),
                     y: Array.from(results.nuclear_capacity).slice(1).map((val, i) => (val - results.nuclear_capacity[i]) / 1000),
-                    type: 'scatter',
-                    line: { color: 'deepskyblue' }
+                    type: 'bar',
+                    marker: { color: 'deepskyblue' }
                 },
                 {
                     name: 'Storico PV',
@@ -509,9 +509,8 @@
 
     // Funzione per gestire la visibilità dei grafici
     function setupGraphVisibility() {
-        const controls = document.createElement('div');
-        controls.className = 'graph-controls';
-        controls.innerHTML = '<h3>Visibilità grafici:</h3>';
+        const controlsContainer = document.getElementById('graph-controls-container');
+        controlsContainer.innerHTML = '';
 
         document.querySelectorAll('[id*="plot-container"]').forEach(container => {
             const parent = container.parentElement;
@@ -524,10 +523,8 @@
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(' ' + container.id.replace('-container', '')));
 
-            controls.appendChild(label);
+            controlsContainer.appendChild(label);
         });
-
-        document.getElementById('main_content').appendChild(controls);
     }
 
     // Event listener per il pulsante di aggiornamento manuale
@@ -578,8 +575,8 @@
             </div>
 
             <div class="help-text">
-                La nuova potenza installata nucleare è discontinua perchè le durate dei cantieri vengono approssimate
-                all'anno più vicino. Non cambia niente.
+                La nuova potenza installata nucleare è approssimata per valori di massima, si prevede un periodo iniziale 
+                di "learning" seguito da un periodo di cantieri a regime.
             </div>
 
             <div class="help-text">
@@ -593,6 +590,11 @@
 
             <div class="controls">
                 <button id="manual-send" class="manual-trigger">Reset</button>
+            </div>
+
+            <div class="graph-controls">
+                <h3>Visibilità grafici:</h3>
+                <div id="graph-controls-container"></div>
             </div>
 
             <div class="plot-container">

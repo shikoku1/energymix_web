@@ -639,36 +639,73 @@ export class SimulationSettings {
     /**
      * @returns {number}
      */
-    get nucleare_inizio() {
+    get reattori_prima_learning() {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_simulationsettings_nucleare_inizio(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_reattori_prima_learning(this.__wbg_ptr);
         return ret;
     }
     /**
      * @param {number} arg0
      */
-    set nucleare_inizio(arg0) {
+    set reattori_prima_learning(arg0) {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
-        wasm.__wbg_set_simulationsettings_nucleare_inizio(this.__wbg_ptr, arg0);
+        _assertNum(arg0);
+        wasm.__wbg_set_simulationsettings_reattori_prima_learning(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
      */
-    get nucleare_fine() {
+    get reattori_dopo_learning() {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_simulationsettings_nucleare_fine(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_reattori_dopo_learning(this.__wbg_ptr);
         return ret;
     }
     /**
      * @param {number} arg0
      */
-    set nucleare_fine(arg0) {
+    set reattori_dopo_learning(arg0) {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
-        wasm.__wbg_set_simulationsettings_nucleare_fine(this.__wbg_ptr, arg0);
+        _assertNum(arg0);
+        wasm.__wbg_set_simulationsettings_reattori_dopo_learning(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get potenza_reattore() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_potenza_reattore(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set potenza_reattore(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        wasm.__wbg_set_simulationsettings_potenza_reattore(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get numero_reattori() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_numero_reattori(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set numero_reattori(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        _assertNum(arg0);
+        wasm.__wbg_set_simulationsettings_numero_reattori(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
@@ -691,20 +728,20 @@ export class SimulationSettings {
     /**
      * @returns {number}
      */
-    get durata_cantiere_noak() {
+    get tempo_learning() {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_simulationsettings_durata_cantiere_noak(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_simulationsettings_tempo_learning(this.__wbg_ptr);
         return ret;
     }
     /**
      * @param {number} arg0
      */
-    set durata_cantiere_noak(arg0) {
+    set tempo_learning(arg0) {
         if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.__wbg_ptr);
         _assertNum(arg0);
-        wasm.__wbg_set_simulationsettings_durata_cantiere_noak(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_simulationsettings_tempo_learning(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
@@ -757,24 +794,6 @@ export class SimulationSettings {
         _assertNum(this.__wbg_ptr);
         _assertNum(arg0);
         wasm.__wbg_set_simulationsettings_anno_inizio_installazioni_nucleare(this.__wbg_ptr, arg0);
-    }
-    /**
-     * @returns {number}
-     */
-    get anno_fine_installazioni_nucleare() {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_simulationsettings_anno_fine_installazioni_nucleare(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * @param {number} arg0
-     */
-    set anno_fine_installazioni_nucleare(arg0) {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        _assertNum(arg0);
-        wasm.__wbg_set_simulationsettings_anno_fine_installazioni_nucleare(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
